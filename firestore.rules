@@ -1,0 +1,64 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} { 
+      allow read, write: if false; 
+    }
+
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isSignedIn() { return request.auth != null; }
+
+    function isValidWorkspace(data) {
+      let isBasicValid = data.ownerId is string && data.ownerId.size() <= 128 &&
+                         data.createdAt is number && data.updatedAt is number;
+                         
+      let hasValidOptFields = (!("viewMode" in data) || (data.viewMode is string && data.viewMode.size() <= 10)) &&
+                              (!("fixedHashtags" in data) || (data.fixedHashtags is string && data.fixedHashtags.size() <= 1000));
+                              
+      return isBasicValid && hasValidOptFields;
+    }
+
+    function isValidModelImage(data) {
+      return data.image is string && data.image.size() <= 1048576 &&
+             data.createdAt is number;
+    }
+
+    function isValidProductItem(data) {
+      let isBasicValid = data.image is string && data.image.size() <= 1048576 &&
+                         data.status is string && data.status.size() <= 50 &&
+                         data.createdAt is number && data.updatedAt is number;
+                         
+      let optImageValid = (!("modelImage" in data) || (data.modelImage is string && data.modelImage.size() <= 1048576)) &&
+                          (!("combinedImage" in data) || (data.combinedImage is string && data.combinedImage.size() <= 1048576)) &&
+                          (!("descriptionImage" in data) || (data.descriptionImage is string && data.descriptionImage.size() <= 1048576));
+                          
+      let optTextValid = (!("description" in data) || (data.description is string && data.description.size() <= 10000)) &&
+                         (!("userReviews" in data) || (data.userReviews is string && data.userReviews.size() <= 20000)) &&
+                         (!("error" in data) || (data.error is string && data.error.size() <= 5000));
+                         
+      let optObjValid = (!("result" in data) || data.result is map) &&
+                        (!("history" in data) || (data.history is list && data.history.size() <= 20));
+                        
+      return isBasicValid && optImageValid && optTextValid && optObjValid;
+    }
+
+    match /test/connection {
+      allow read: if true;
+    }
+
+    match /workspaces/{workspaceId} {
+      allow read, write: if request.auth != null && workspaceId == request.auth.uid;
+
+      match /models/{modelId} {
+        allow read, write: if request.auth != null && workspaceId == request.auth.uid;
+      }
+
+      match /products/{productId} {
+        allow read, write: if request.auth != null && workspaceId == request.auth.uid;
+      }
+    }
+  }
+}

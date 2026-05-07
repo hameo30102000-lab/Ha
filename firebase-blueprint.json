@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "Workspace": {
+      "title": "Workspace",
+      "description": "User's main settings",
+      "type": "object",
+      "properties": {
+        "viewMode": { "type": "string" },
+        "fixedHashtags": { "type": "string" },
+        "ownerId": { "type": "string" },
+        "createdAt": { "type": "integer" },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["ownerId", "createdAt", "updatedAt"]
+    },
+    "ModelImage": {
+      "title": "ModelImage",
+      "description": "Base64 image of a model",
+      "type": "object",
+      "properties": {
+        "image": { "type": "string" },
+        "createdAt": { "type": "integer" }
+      },
+      "required": ["image", "createdAt"]
+    },
+    "ProductItem": {
+      "title": "ProductItem",
+      "description": "A product with AI generated data",
+      "type": "object",
+      "properties": {
+        "image": { "type": "string" },
+        "modelImage": { "type": "string" },
+        "combinedImage": { "type": "string" },
+        "description": { "type": "string" },
+        "userReviews": { "type": "string" },
+        "descriptionImage": { "type": "string" },
+        "status": { "type": "string" },
+        "result": { "type": "object" },
+        "history": { "type": "array" },
+        "error": { "type": "string" },
+        "createdAt": { "type": "integer" },
+        "updatedAt": { "type": "integer" }
+      },
+      "required": ["image", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "workspaces/{workspaceId}": {
+      "schema": { "$ref": "#/entities/Workspace" },
+      "description": "User's workspace"
+    },
+    "workspaces/{workspaceId}/models/{modelId}": {
+      "schema": { "$ref": "#/entities/ModelImage" },
+      "description": "Model images for the workspace"
+    },
+    "workspaces/{workspaceId}/products/{productId}": {
+      "schema": { "$ref": "#/entities/ProductItem" },
+      "description": "Products in the workspace"
+    }
+  }
+}
